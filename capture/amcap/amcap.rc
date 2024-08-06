@@ -1,0 +1,199 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include <Windows.h>
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include <Windows.h>\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Neutral (Default) (unknown sub-lang: 0x8) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ZZZ)
+LANGUAGE LANG_NEUTRAL, 0x8
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+ID_APP MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Set &Capture File...",        MENU_SET_CAP_FILE
+        MENUITEM "&Allocate File Space...",     MENU_ALLOC_CAP_FILE
+        MENUITEM "&Save Captured Video...",     MENU_SAVE_CAP_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       MENU_EXIT
+    END
+    POPUP "&Devices"
+    BEGIN
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Preview",                    MENU_PREVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "&MPEG2",                      MENU_MPEG2
+        MENUITEM SEPARATOR
+        MENUITEM "&Audio Format...",            MENU_AUDIOFORMAT
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Capture"
+    BEGIN
+        MENUITEM "&Start Capture",              MENU_START_CAP
+        MENUITEM "Sto&p Capture",               MENU_STOP_CAP
+        MENUITEM SEPARATOR
+        MENUITEM "Capture &Audio",              MENU_CAP_AUDIO
+        MENUITEM "&Closed Captioning",          MENU_CAP_CC
+        POPUP "&Master Stream"
+        BEGIN
+            MENUITEM "&None",                       MENU_NOMASTER
+            MENUITEM "&Audio",                      MENU_AUDIOMASTER
+            MENUITEM "&Video",                      MENU_VIDEOMASTER
+        END
+        MENUITEM "Set &Frame Rate...",          MENU_FRAMERATE
+        MENUITEM "Set &Time Limit...",          MENU_TIMELIMIT
+    END
+    POPUP "Fil&ters"
+    BEGIN
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About...",                   MENU_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOG 10, 20, 215, 78
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "About AMCap..."
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CTEXT           "AMCAP - DirectShow Video Capture Sample",-1,23,8,170,8,NOT WS_GROUP
+    CTEXT           "Version 9.01",-1,41,23,134,8,NOT WS_GROUP
+    CTEXT           "Copyright ©  Microsoft Corp.",-1,23,38,170,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,91,53,32,14,WS_GROUP
+    ICON            "AMCAPICON",-1,7,17,21,20
+END
+
+IDD_AllocCapFileSpace DIALOG 6, 18, 160, 105
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Set File Size"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Enter the amount of disk space to set ",-1,5,9,130,8
+    LTEXT           "aside for the capture file.  Existing video",-1,5,19,135,8
+    LTEXT           "data in the file will be lost.",-1,5,29,93,8
+    LTEXT           "Free disk space:",-1,5,50,59,8
+    LTEXT           "     ",IDD_SetCapFileFree,73,50,20,8
+    LTEXT           "MBytes",-1,96,50,27,8
+    LTEXT           "Capture file size:",-1,5,64,60,8
+    EDITTEXT        IDD_SetCapFileSize,65,64,28,12,ES_AUTOHSCROLL
+    LTEXT           "MBytes",-1,96,64,27,8
+    PUSHBUTTON      "OK",IDOK,38,84,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,88,84,40,14
+END
+
+IDD_PressAKeyDialog DIALOG 12, 29, 121, 60
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ready to Capture"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Select OK to start capture of video sequence to:",-1,5,4,100,16,NOT WS_GROUP
+    LTEXT           "",IDC_CAPFILENAME,5,23,100,16,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,18,42,32,14
+    PUSHBUTTON      "Cancel",IDCANCEL,69,42,32,14
+END
+
+IDD_FrameRateDialog DIALOG 12, 29, 121, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Choose Frame Rate"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "",IDC_USEFRAMERATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,3,4,9,8
+    LTEXT           "Use Frame Rate",-1,13,4,73,8,NOT WS_GROUP
+    LTEXT           "&Frame Rate:",-1,3,18,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_FRAMERATE,44,16,44,12
+    LTEXT           "f/sec",-1,93,18,18,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,18,33,32,14
+    PUSHBUTTON      "Cancel",IDCANCEL,69,33,32,14
+END
+
+IDD_TimeLimitDialog DIALOG 12, 29, 121, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Capture Time Limit"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "",IDC_USETIMELIMIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,3,4,9,8
+    LTEXT           "Use Time Limit",-1,13,4,73,8,NOT WS_GROUP
+    LTEXT           "&Time Limit:",-1,3,18,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_TIMELIMIT,44,16,44,12
+    LTEXT           "sec",-1,93,18,18,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,18,33,32,14
+    PUSHBUTTON      "Cancel",IDCANCEL,69,33,32,14
+END
+
+#endif    // Neutral (Default) (unknown sub-lang: 0x8) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
