@@ -1,12 +1,12 @@
 #include <Windows.h>
 
 #include "PrintAnalysisFilter.h"
-#include "ImageAnalysis.h"
+#include "ImageAnalysisRGB.h"
 #include "pauuids.h"
 #include "resource.h"
 
 
-using namespace ImageAnalysis;
+using namespace ImageUtils;
 
 #define WRITEOUT(var)  hr = pStream->Write(&var, sizeof(var), NULL); \
                if (FAILED(hr)) return hr;
@@ -20,6 +20,7 @@ using namespace ImageAnalysis;
 CPrintAnalysisFilter::CPrintAnalysisFilter(TCHAR* tszName, LPUNKNOWN punk, HRESULT* phr) 
     : CTransInPlaceFilter(tszName, punk, CLSID_PrintAnalysis, phr)
     , CPersistStream(punk, phr)
+    , m_pAnalysis(NULL)
 {
     m_opts.effect           = IDC_INTENSITY;
     m_opts.aoiHeight        = 100;
@@ -28,6 +29,17 @@ CPrintAnalysisFilter::CPrintAnalysisFilter(TCHAR* tszName, LPUNKNOWN punk, HRESU
     m_opts.blackout         = FALSE;
 
 } // (Constructor)
+
+
+//
+// Destructor
+//
+CPrintAnalysisFilter::~CPrintAnalysisFilter()
+{
+    if (m_pAnalysis)
+        delete m_pAnalysis;
+} // (Destructor)
+
 
 //
 // CreateInstance
@@ -98,46 +110,27 @@ HRESULT CPrintAnalysisFilter::Transform(IMediaSample *pSample)
 HRESULT CPrintAnalysisFilter::TransformRGB(IMediaSample* pSample)
 {
     BYTE* pData;             // Pointer to the actual image buffer
-    INTRGBTRIPLE* piRgb = NULL;
-    int aoiMinY, aoiMaxY;
-    
-    AM_MEDIA_TYPE* pType = &m_pInput->CurrentMediaType();
-    VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)pType->pbFormat;
-    ASSERT(pvi);
 
     CheckPointer(pSample, E_POINTER);
     pSample->GetPointer(&pData);
 
-    // Get the image properties from the BITMAPINFOHEADER
-    int cxImage = pvi->bmiHeader.biWidth;
-    int cyImage = pvi->bmiHeader.biHeight;
-    int numPixels = cxImage * cyImage;
-    int numValues = 0;
-    INTRGBTRIPLE min, max;
-
-    aoiMinY = (cyImage / 2) - (m_opts.aoiHeight / 2);
-    aoiMaxY = aoiMinY + m_opts.aoiHeight;
-
-    int maxRange = aoiMaxY;
-    int minRange = aoiMinY;
-
-    switch (m_opts.effect)
+    if (m_pAnalysis)
     {
-    case IDC_INTENSITY: 
-        ComputeIntensity(pData, cxImage, cyImage, m_opts);
-        break;
+        switch (m_opts.effect)
+        {
+        case IDC_INTENSITY:
+            m_pAnalysis->ComputeIntensity(pData);
+            break;
 
-    case IDC_MEAN:
-        ComputeAverage(pData, cxImage, cyImage, m_opts);
-        break;
+        case IDC_MEAN:
+        case IDC_MEAN_LOCAL:
+            m_pAnalysis->ComputeAverage(pData);
+            break;
 
-    case IDC_MEAN_LOCAL:
-        ComputeAverage(pData, cxImage, cyImage, m_opts);
-        break;
-
-    case IDC_HISTOGRAM:
-        ComputeHistogramLocal(pData, cxImage, cyImage, m_opts);
-        break;
+        case IDC_HISTOGRAM:
+            m_pAnalysis->ComputeHistogramLocal(pData);
+            break;
+        }
     }
 
     return NOERROR;
@@ -195,6 +188,26 @@ HRESULT CPrintAnalysisFilter::SetMediaType(PIN_DIRECTION direction, const CMedia
             // resize our window to the default capture size
             m_opts.aoiHeight = min(HEADER(pmt->pbFormat)->biHeight, m_opts.aoiHeight);
         }
+
+        if (IsEqualGUID(*m_mediaType.Subtype(), MEDIASUBTYPE_RGB24))
+        {
+            VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)m_mediaType.Format();
+
+            if (pvi->bmiHeader.biBitCount == 24)
+            {
+                if (m_pAnalysis)
+                    delete m_pAnalysis;
+
+                m_pAnalysis = new ImageAnalysisRGB(pvi->bmiHeader.biWidth, pvi->bmiHeader.biHeight, m_opts);
+
+                return NOERROR;
+            }
+        }
+        else if (IsEqualGUID(*m_mediaType.Subtype(), MEDIASUBTYPE_YUY2))
+        {
+            VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)m_mediaType.Format();
+            return NOERROR;
+        }
     }
     return NOERROR;
 } // SetMediaType
@@ -245,6 +258,9 @@ STDMETHODIMP CPrintAnalysisFilter::put_AnalysisOptions(AnalysisOpts opts)
     CAutoLock cAutolock(&m_filterLock);
 
     m_opts = opts;
+    
+    if (m_pAnalysis)
+        m_pAnalysis->SetAnalysisOpts(opts);
 
     if (m_mediaType.formattype == FORMAT_VideoInfo)
     {
@@ -282,6 +298,9 @@ HRESULT CPrintAnalysisFilter::ReadFromStream(IStream* pStream)
     HRESULT hr;
 
     READIN(m_opts);
+
+    if (m_pAnalysis)
+        m_pAnalysis->SetAnalysisOpts(m_opts);
     
     return NOERROR;
 

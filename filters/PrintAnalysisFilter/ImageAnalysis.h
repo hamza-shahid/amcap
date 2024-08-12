@@ -5,7 +5,7 @@
 #include <streams.h>
 
 
-namespace ImageAnalysis
+namespace ImageUtils
 {
 	typedef struct AnalysisOpts {
 		int         effect;               // Which effect are we processing
@@ -15,6 +15,7 @@ namespace ImageAnalysis
 		CRefTime    effectTime;
 		BOOL		connectValues;
 		BOOL		blackout;
+		GUID		imageType;
 	} AnalysisOpts;
 
 	typedef struct INTRGBTRIPLE {
@@ -23,10 +24,33 @@ namespace ImageAnalysis
 		int blue = 0;
 	} INTRGBTRIPLE;
 
-	HRESULT ComputeIntensity(BYTE* pImage, int imageWidth, int imageHeight, AnalysisOpts opts);
-	HRESULT ComputeAverage(BYTE* pImage, int imageWidth, int imageHeight, AnalysisOpts opts);
-	HRESULT ComputeHistogram(BYTE* pImage, int imageWidth, int yStart, int yEnd, INTRGBTRIPLE* pHistogram);
-	HRESULT ComputeHistogramLocal(BYTE* pImage, int imageWidth, int imageHeight, AnalysisOpts opts);
+	class ImageAnalysis
+	{
+	public:
+		ImageAnalysis(int iImageWidth, int iImageHeight, AnalysisOpts opts);
+		~ImageAnalysis();
+
+		virtual HRESULT ComputeIntensity(BYTE* pImage) PURE;
+		virtual HRESULT ComputeAverage(BYTE* pImage) PURE;
+		virtual HRESULT ComputeHistogramLocal(BYTE* pImage) PURE;
+
+		void SetAnalysisOpts(AnalysisOpts& opts);
+
+	protected:
+		virtual void CheckAllocatedMemory() PURE;
+
+	protected:
+		AnalysisOpts	m_opts;
+		int				m_iPrevPartitions;
+		int				m_iImageWidth;
+		int				m_iImageHeight;
+		//INTRGBTRIPLE*	m_pResults;
+		//int				m_iNumResults;
+
+		INTRGBTRIPLE**	m_ppResults;
+		int*			m_piNumResults;
+
+	};
 }
 
 #endif

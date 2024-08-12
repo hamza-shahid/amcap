@@ -14,11 +14,11 @@ extern "C" {
     DECLARE_INTERFACE_(IAnalysisOptions, IUnknown)
     {
         STDMETHOD(get_AnalysisOptions) (THIS_
-            ImageAnalysis::AnalysisOpts &opts
+            ImageUtils::AnalysisOpts &opts
             ) PURE;
 
         STDMETHOD(put_AnalysisOptions) (THIS_
-            ImageAnalysis::AnalysisOpts opts
+            ImageUtils::AnalysisOpts opts
             ) PURE;
     };
 

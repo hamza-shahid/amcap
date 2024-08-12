@@ -30,8 +30,8 @@ public:
     STDMETHODIMP GetPages(CAUUID* pPages);
     
     // These implement the custom IAnalysisOptions interface
-    STDMETHODIMP get_AnalysisOptions(ImageAnalysis::AnalysisOpts& opts);
-    STDMETHODIMP put_AnalysisOptions(ImageAnalysis::AnalysisOpts opts);
+    STDMETHODIMP get_AnalysisOptions(ImageUtils::AnalysisOpts& opts);
+    STDMETHODIMP put_AnalysisOptions(ImageUtils::AnalysisOpts opts);
 
     // CPersistStream stuff
     HRESULT WriteToStream(IStream* pStream);
@@ -42,13 +42,15 @@ private:
 
     // Constructor
     CPrintAnalysisFilter(TCHAR* tszName, LPUNKNOWN punk, HRESULT* phr);
+    virtual ~CPrintAnalysisFilter();
 
     HRESULT TransformRGB(IMediaSample* pSample);
 
     CCritSec    m_filterLock;           // Private play critical section
     CMediaType  m_mediaType;            // Media type of the connected input pin
     
-    ImageAnalysis::AnalysisOpts m_opts;
+    ImageUtils::ImageAnalysis*  m_pAnalysis;
+    ImageUtils::AnalysisOpts    m_opts;
 
 }; // CPrintAnalysisFilter
 

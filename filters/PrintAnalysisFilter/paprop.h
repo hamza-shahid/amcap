@@ -30,7 +30,7 @@ private:
     CPrintAnalysisProperties(LPUNKNOWN lpunk, HRESULT* phr);
 
     BOOL m_bIsInitialized;                      // Used to ignore startup messages
-    ImageAnalysis::AnalysisOpts m_opts;
+    ImageUtils::AnalysisOpts m_opts;
     
     IAnalysisOptions* m_pAnalysisOptions;       // The custom interface on the filter
 
