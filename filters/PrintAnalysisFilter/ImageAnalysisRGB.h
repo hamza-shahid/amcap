@@ -5,6 +5,14 @@
 
 namespace ImageUtils
 {
+	typedef struct INTRGBTRIPLE
+	{
+		int red = 0;
+		int green = 0;
+		int blue = 0;
+	} INTRGBTRIPLE;
+
+	
 	class ImageAnalysisRGB : public ImageAnalysis
 	{
 	public:
@@ -22,9 +30,10 @@ namespace ImageUtils
 		void PlotValues(BYTE* pImage);
 		void DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, RGBTRIPLE color);
 		void ScaleGraph(const INTRGBTRIPLE* input, int inSize, INTRGBTRIPLE* output, int outSize);
-		void NormalizeLocal(int iRangeMin, int iRangeMax);
-		void Normalize(int iRangeMin, int iRangeMax);
+		
+		void Normalize(int iOrigMin, int iOrigMax, int iRangeMin, int iRangeMax);
 
+		static void NormalizeRGB(INTRGBTRIPLE& iValue, int iOrigRange, int iMinOrig, int iNewRange, int iMinNew);
 		static void ComputeMinMax(INTRGBTRIPLE* pValues, int iNumValues, INTRGBTRIPLE& min, INTRGBTRIPLE& max);
 
 	public:
@@ -34,6 +43,8 @@ namespace ImageUtils
 
 	private:
 		INTRGBTRIPLE*	m_piHistogram;
+		INTRGBTRIPLE**	m_ppResults;
+		int*			m_piNumResults;
 	};
 }
 

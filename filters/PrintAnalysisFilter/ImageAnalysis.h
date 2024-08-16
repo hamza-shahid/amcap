@@ -7,7 +7,8 @@
 
 namespace ImageUtils
 {
-	typedef struct AnalysisOpts {
+	typedef struct AnalysisOpts
+	{
 		int         effect;               // Which effect are we processing
 		int         aoiHeight;
 		int			aoiPartitions;
@@ -17,12 +18,6 @@ namespace ImageUtils
 		BOOL		blackout;
 		GUID		imageType;
 	} AnalysisOpts;
-
-	typedef struct INTRGBTRIPLE {
-		int red = 0;
-		int green = 0;
-		int blue = 0;
-	} INTRGBTRIPLE;
 
 	class ImageAnalysis
 	{
@@ -39,17 +34,13 @@ namespace ImageUtils
 	protected:
 		virtual void CheckAllocatedMemory() PURE;
 
+		static double NormalizeValue(double fValue, double fOrigRange, double fMinOrig, double fNewRange, double fMinNew);
+
 	protected:
 		AnalysisOpts	m_opts;
 		int				m_iPrevPartitions;
 		int				m_iImageWidth;
 		int				m_iImageHeight;
-		//INTRGBTRIPLE*	m_pResults;
-		//int				m_iNumResults;
-
-		INTRGBTRIPLE**	m_ppResults;
-		int*			m_piNumResults;
-
 	};
 }
 

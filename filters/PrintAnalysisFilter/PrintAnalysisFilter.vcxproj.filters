@@ -36,6 +36,9 @@
     <ClInclude Include="ImageAnalysisRGB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ImageAnalysisYUY2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PrintAnalysisFilter.cpp">
@@ -51,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageAnalysisRGB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageAnalysisYUY2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

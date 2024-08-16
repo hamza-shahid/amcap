@@ -4,8 +4,8 @@
 
 namespace ImageUtils
 {
-#define ROW(pImage, width, y) &pImage[width * 3 * y]
-#define ROWCOL(pImage, width, x, y) &pImage[(width * 3 * y) + (x*3)]
+#define ROW(pImage, width, y) &pImage[width * sizeof(RGBTRIPLE) * y]
+#define ROWCOL(pImage, width, x, y) &pImage[(width * sizeof(RGBTRIPLE) * y) + (x*sizeof(RGBTRIPLE))]
 
 #define RGB_BLACK {0, 0, 0}
 #define RGB_WHITE {255, 255, 255}
@@ -13,7 +13,7 @@ namespace ImageUtils
 #define RGB_GREEN {0, 255, 0}
 #define RGB_BLUE {255, 0, 0}
 
-
+    
     static inline void AdjustMinMax(INTRGBTRIPLE& newMin, INTRGBTRIPLE& newMax, INTRGBTRIPLE& min, INTRGBTRIPLE& max)
     {
         if (newMax.red > max.red) max.red = newMax.red;
@@ -25,17 +25,12 @@ namespace ImageUtils
         if (newMax.blue > max.blue) max.blue = newMax.blue;
         if (newMin.blue < min.blue) min.blue = newMin.blue;
     }
-
-    static inline double NormalizeValue(double fValue, double fOrigRange, double fMinOrig, double fNewRange, double fMinNew)
+    
+    void ImageAnalysisRGB::NormalizeRGB(INTRGBTRIPLE& iValue, int iOrigRange, int iMinOrig, int iNewRange, int iMinNew)
     {
-        return fOrigRange ? ((fValue - fMinOrig) / fOrigRange) * fNewRange + fMinNew : fMinNew;
-    }
-
-    static inline void NormalizeRGB(INTRGBTRIPLE& iValue, INTRGBTRIPLE& iOrigRange, INTRGBTRIPLE& iMinOrig, int& iNewRange, int& iMinNew)
-    {
-        iValue.red = (int) NormalizeValue(iValue.red, iOrigRange.red, iMinOrig.red, iNewRange, iMinNew);
-        iValue.green = (int)NormalizeValue(iValue.green, iOrigRange.green, iMinOrig.green, iNewRange, iMinNew);
-        iValue.blue = (int)NormalizeValue(iValue.blue, iOrigRange.blue, iMinOrig.blue, iNewRange, iMinNew);
+        iValue.red = (int) NormalizeValue(iValue.red, iOrigRange, iMinOrig, iNewRange, iMinNew);
+        iValue.green = (int)NormalizeValue(iValue.green, iOrigRange, iMinOrig, iNewRange, iMinNew);
+        iValue.blue = (int)NormalizeValue(iValue.blue, iOrigRange, iMinOrig, iNewRange, iMinNew);
     }
 
     ImageAnalysisRGB::ImageAnalysisRGB(int iImageWidth, int iImageHeight, AnalysisOpts opts)
@@ -50,6 +45,15 @@ namespace ImageUtils
     {
         if (m_piHistogram)
             delete[] m_piHistogram;
+
+        if (m_ppResults)
+        {
+            for (int i = 0; i < m_iPrevPartitions; i++)
+                delete[] m_ppResults[i];
+
+            delete[] m_ppResults;
+            delete[] m_piNumResults;
+        }
     }
 
     void ImageAnalysisRGB::CheckAllocatedMemory()
@@ -119,7 +123,7 @@ namespace ImageUtils
         ComputeIntensity(pImage, iAoiMinY, iAoiMaxY);
 
         DrawAOI(pImage);
-        Normalize(iAoiMinY, iAoiMaxY);
+        Normalize(0, (UCHAR_MAX - 1) * m_opts.aoiHeight, iAoiMinY, iAoiMaxY);
         PlotValues(pImage);
 
         return NOERROR;
@@ -153,18 +157,9 @@ namespace ImageUtils
         CheckPointer(pImage, E_POINTER);
 
         ComputeAverage(pImage, iAoiMinY, iAoiMaxY);
-        
+
         DrawAOI(pImage);
-
-        if (m_opts.effect == IDC_MEAN_LOCAL)
-        {
-            NormalizeLocal(iAoiMinY, iAoiMaxY);
-        }
-        else
-        {
-            Normalize(iAoiMinY, iAoiMaxY);
-        }
-
+        Normalize(0, UCHAR_MAX - 1, iAoiMinY, iAoiMaxY);
         PlotValues(pImage);
 
         return NOERROR;
@@ -198,11 +193,21 @@ namespace ImageUtils
                 }
             }
 
+            INTRGBTRIPLE min, max;
+            ComputeMinMax(m_piHistogram, UCHAR_MAX, min, max);
+
+            // normalize
+            for (int j = 0; j < UCHAR_MAX; j++)
+            {
+                m_piHistogram[j].red    = (int)NormalizeValue(m_piHistogram[j].red, max.red - min.red, min.red, iAoiMaxY - iAoiMinY, iAoiMinY);
+                m_piHistogram[j].green  = (int)NormalizeValue(m_piHistogram[j].green, max.green - min.green, min.green, iAoiMaxY - iAoiMinY, iAoiMinY);
+                m_piHistogram[j].blue   = (int)NormalizeValue(m_piHistogram[j].blue, max.blue - min.blue, min.blue, iAoiMaxY - iAoiMinY, iAoiMinY);
+            }
+
             ScaleGraph(m_piHistogram, UCHAR_MAX, m_ppResults[i], m_piNumResults[i]);
         }
 
         DrawAOI(pImage);
-        NormalizeLocal(iAoiMinY, iAoiMaxY);
         PlotValues(pImage);
 
         return NOERROR;
@@ -217,50 +222,18 @@ namespace ImageUtils
             AdjustMinMax(pValues[i], pValues[i], min, max);
     }
 
-    void ImageAnalysisRGB::NormalizeLocal(int iRangeMin, int iRangeMax)
+    void ImageAnalysisRGB::Normalize(int iOrigMin, int iOrigMax, int iRangeMin, int iRangeMax)
     {
-        INTRGBTRIPLE min, max;
         int iNewRange = iRangeMax - iRangeMin;
 
         for (int i = 0; i < m_opts.aoiPartitions; i++)
         {
-            // compute min max for the partition
-            ComputeMinMax(m_ppResults[i], m_piNumResults[i], min, max);
-            
-            INTRGBTRIPLE iOrigRange = { max.red - min.red, max.green - min.green, max.blue - min.blue };
-
-            // normalize 
             for (int j = 0; j < m_piNumResults[i]; j++)
-                NormalizeRGB(m_ppResults[i][j], iOrigRange, min, iNewRange, iRangeMin);
+                NormalizeRGB(m_ppResults[i][j], iOrigMax - iOrigMin, iOrigMin, iNewRange, iRangeMin);
         }
     }
     
-    void ImageAnalysisRGB::Normalize(int iRangeMin, int iRangeMax)
-    {
-        INTRGBTRIPLE minLocal, maxLocal;
-        INTRGBTRIPLE minGlobal, maxGlobal;
-        int iNewRange = iRangeMax - iRangeMin;
 
-        minGlobal.red = minGlobal.green = minGlobal.blue = INT_MAX;
-        maxGlobal.red = maxGlobal.green = maxGlobal.blue = 0;
-        
-        for (int i = 0; i < m_opts.aoiPartitions; i++)
-        {
-            // compute min max for the partition
-            ComputeMinMax(m_ppResults[i], m_piNumResults[i], minLocal, maxLocal);
-            AdjustMinMax(minLocal, maxLocal, minGlobal, maxGlobal);
-        }
-
-        for (int i = 0; i < m_opts.aoiPartitions; i++)
-        {
-            INTRGBTRIPLE iOrigRange = { maxGlobal.red - minGlobal.red, maxGlobal.green - minGlobal.green, maxGlobal.blue - minGlobal.blue };
-
-            // normalize 
-            for (int j = 0; j < m_piNumResults[i]; j++)
-                NormalizeRGB(m_ppResults[i][j], iOrigRange, minGlobal, iNewRange, iRangeMin);
-        }
-    }
-    
     void ImageAnalysisRGB::ScaleGraph(const INTRGBTRIPLE* input, int inSize, INTRGBTRIPLE* output, int outSize)
     {
         float fScaleFactor = (float)inSize / outSize;

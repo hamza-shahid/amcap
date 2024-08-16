@@ -8,8 +8,7 @@
 #define IDC_INTENSITY                   1002
 #define IDC_MEAN                        1003
 #define IDC_HISTOGRAM                   1004
-#define IDC_MEAN_LOCAL                  1005
-#define IDC_NONE                        1006
+#define IDC_NONE                        1005
 #define IDC_CHECK_CONNECT_VALUES        1010
 #define IDC_CHECK_BLACKOUT              1011
 #define IDC_STATIC_AOI_HEIGHT           1020

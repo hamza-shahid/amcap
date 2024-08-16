@@ -16,19 +16,16 @@ namespace ImageUtils
 
     ImageAnalysis::~ImageAnalysis()
     {
-        if (m_ppResults)
-        {
-            for (int i = 0; i < m_iPrevPartitions; i++)
-                delete[] m_ppResults[i];
-
-            delete[] m_ppResults;
-            delete[] m_piNumResults;
-        }
     }
 
     void ImageAnalysis::SetAnalysisOpts(AnalysisOpts& opts)
     {
         m_opts = opts;
+    }
+
+    double ImageAnalysis::NormalizeValue(double fValue, double fOrigRange, double fMinOrig, double fNewRange, double fMinNew)
+    {
+        return fOrigRange ? ((fValue - fMinOrig) / fOrigRange) * fNewRange + fMinNew : fMinNew;
     }
 
     /*

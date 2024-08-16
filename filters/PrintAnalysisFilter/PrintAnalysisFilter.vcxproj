@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="ImageAnalysis.h" />
     <ClInclude Include="ImageAnalysisRGB.h" />
+    <ClInclude Include="ImageAnalysisYUY2.h" />
     <ClInclude Include="paoptions.h" />
     <ClInclude Include="paprop.h" />
     <ClInclude Include="pauuids.h" />
@@ -30,6 +31,7 @@
   <ItemGroup>
     <ClCompile Include="ImageAnalysis.cpp" />
     <ClCompile Include="ImageAnalysisRGB.cpp" />
+    <ClCompile Include="ImageAnalysisYUY2.cpp" />
     <ClCompile Include="paprop.cpp" />
     <ClCompile Include="PrintAnalysisFilter.cpp" />
     <ClCompile Include="PrintAnalysisReg.cpp" />

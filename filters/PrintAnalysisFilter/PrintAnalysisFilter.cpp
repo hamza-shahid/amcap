@@ -2,6 +2,7 @@
 
 #include "PrintAnalysisFilter.h"
 #include "ImageAnalysisRGB.h"
+#include "ImageAnalysisYUY2.h"
 #include "pauuids.h"
 #include "resource.h"
 
@@ -88,15 +89,36 @@ STDMETHODIMP CPrintAnalysisFilter::NonDelegatingQueryInterface(REFIID riid, void
 //
 HRESULT CPrintAnalysisFilter::Transform(IMediaSample *pSample)
 {
+    BYTE* pData;             // Pointer to the actual image buffer
     CheckPointer(pSample, E_POINTER);
 
     CRefTime tStart, tStop;
     HRESULT hr = pSample->GetTime((REFERENCE_TIME*)&tStart, (REFERENCE_TIME*)&tStop);
 
+    pSample->GetPointer(&pData);
+
+    if (m_pAnalysis)
+    {
+        switch (m_opts.effect)
+        {
+        case IDC_INTENSITY:
+            m_pAnalysis->ComputeIntensity(pData);
+            break;
+            
+        case IDC_MEAN:
+            m_pAnalysis->ComputeAverage(pData);
+            break;
+            
+        case IDC_HISTOGRAM:
+            m_pAnalysis->ComputeHistogramLocal(pData);
+            break;
+        }
+    }
+    /*
     if (m_mediaType.subtype == MEDIASUBTYPE_RGB24)
     {
         return TransformRGB(pSample);
-    }
+    }*/
 
     return NOERROR;
 } // Transform
@@ -121,7 +143,7 @@ HRESULT CPrintAnalysisFilter::TransformRGB(IMediaSample* pSample)
         case IDC_INTENSITY:
             m_pAnalysis->ComputeIntensity(pData);
             break;
-
+/*
         case IDC_MEAN:
         case IDC_MEAN_LOCAL:
             m_pAnalysis->ComputeAverage(pData);
@@ -129,7 +151,7 @@ HRESULT CPrintAnalysisFilter::TransformRGB(IMediaSample* pSample)
 
         case IDC_HISTOGRAM:
             m_pAnalysis->ComputeHistogramLocal(pData);
-            break;
+            break;*/
         }
     }
 
@@ -199,13 +221,14 @@ HRESULT CPrintAnalysisFilter::SetMediaType(PIN_DIRECTION direction, const CMedia
                     delete m_pAnalysis;
 
                 m_pAnalysis = new ImageAnalysisRGB(pvi->bmiHeader.biWidth, pvi->bmiHeader.biHeight, m_opts);
-
                 return NOERROR;
             }
         }
         else if (IsEqualGUID(*m_mediaType.Subtype(), MEDIASUBTYPE_YUY2))
         {
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)m_mediaType.Format();
+
+            m_pAnalysis = new ImageAnalysisYUY2(pvi->bmiHeader.biWidth, pvi->bmiHeader.biHeight, m_opts);
             return NOERROR;
         }
     }
