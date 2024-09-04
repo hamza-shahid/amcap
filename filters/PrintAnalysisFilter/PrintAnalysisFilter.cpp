@@ -27,7 +27,8 @@ CPrintAnalysisFilter::CPrintAnalysisFilter(TCHAR* tszName, LPUNKNOWN punk, HRESU
     m_opts.aoiHeight        = 100;
     m_opts.aoiPartitions    = 1;
     m_opts.connectValues    = FALSE;
-    m_opts.blackout         = FALSE;
+    m_opts.blackoutType     = IDC_BLACK_NONE;
+    m_opts.grayscaleType    = IDC_GRAY_NONE;
 
 } // (Constructor)
 
@@ -82,7 +83,8 @@ STDMETHODIMP CPrintAnalysisFilter::NonDelegatingQueryInterface(REFIID riid, void
 
 } // NonDelegatingQueryInterface
 
-  //
+
+//
 // Transform
 //
 // This where the actual analysis will be performed
@@ -114,49 +116,10 @@ HRESULT CPrintAnalysisFilter::Transform(IMediaSample *pSample)
             break;
         }
     }
-    /*
-    if (m_mediaType.subtype == MEDIASUBTYPE_RGB24)
-    {
-        return TransformRGB(pSample);
-    }*/
 
     return NOERROR;
 } // Transform
 
-
-//
-// TransformRGB
-//
-// This where the actual analysis will be performed on rgb input
-//
-HRESULT CPrintAnalysisFilter::TransformRGB(IMediaSample* pSample)
-{
-    BYTE* pData;             // Pointer to the actual image buffer
-
-    CheckPointer(pSample, E_POINTER);
-    pSample->GetPointer(&pData);
-
-    if (m_pAnalysis)
-    {
-        switch (m_opts.effect)
-        {
-        case IDC_INTENSITY:
-            m_pAnalysis->ComputeIntensity(pData);
-            break;
-/*
-        case IDC_MEAN:
-        case IDC_MEAN_LOCAL:
-            m_pAnalysis->ComputeAverage(pData);
-            break;
-
-        case IDC_HISTOGRAM:
-            m_pAnalysis->ComputeHistogramLocal(pData);
-            break;*/
-        }
-    }
-
-    return NOERROR;
-} // TransformRGB
 
 //
 // CheckInputType

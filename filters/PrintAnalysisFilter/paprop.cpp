@@ -153,12 +153,13 @@ HRESULT CPrintAnalysisProperties::OnActivate()
     //Edit_SetText(GetDlgItem(m_Dlg, IDC_START), sz);
     */
     CheckRadioButton(m_Dlg, IDC_INTENSITY, IDC_NONE, m_opts.effect);
+    CheckRadioButton(m_Dlg, IDC_BLACK_WHOLE, IDC_BLACK_NONE, m_opts.blackoutType);
+    CheckRadioButton(m_Dlg, IDC_GRAY_WHOLE, IDC_GRAY_NONE, m_opts.grayscaleType);
     
     SetControlValue(IDC_EDIT_AOI_HEIGHT, m_opts.aoiHeight);
     SetControlValue(IDC_EDIT_AOI_PART, m_opts.aoiPartitions);
     
     Button_SetCheck(GetDlgItem(m_Dlg, IDC_CHECK_CONNECT_VALUES), m_opts.connectValues);
-    Button_SetCheck(GetDlgItem(m_Dlg, IDC_CHECK_BLACKOUT), m_opts.blackout);
 
     m_bIsInitialized = TRUE;
 
@@ -255,8 +256,7 @@ void CPrintAnalysisProperties::GetControlValues()
     GetControlValue(IDC_EDIT_AOI_HEIGHT, m_opts.aoiHeight);
     GetControlValue(IDC_EDIT_AOI_PART, m_opts.aoiPartitions);
 
-    m_opts.connectValues = Button_GetCheck(GetDlgItem(m_Dlg, IDC_CHECK_CONNECT_VALUES));
-    m_opts.blackout = Button_GetCheck(GetDlgItem(m_Dlg, IDC_CHECK_BLACKOUT));
+    m_opts.connectValues    = Button_GetCheck(GetDlgItem(m_Dlg, IDC_CHECK_CONNECT_VALUES));
 
     // Find which special effect we have selected
     for (int i = IDC_INTENSITY; i <= IDC_NONE; i++)
@@ -264,6 +264,26 @@ void CPrintAnalysisProperties::GetControlValues()
         if (IsDlgButtonChecked(m_Dlg, i))
         {
             m_opts.effect = i;
+            break;
+        }
+    }
+
+    // Find which blackout type we have selected
+    for (int i = IDC_BLACK_WHOLE; i <= IDC_BLACK_NONE; i++)
+    {
+        if (IsDlgButtonChecked(m_Dlg, i))
+        {
+            m_opts.blackoutType = i;
+            break;
+        }
+    }
+
+    // Find which grayscale type we have selected
+    for (int i = IDC_GRAY_WHOLE; i <= IDC_GRAY_NONE; i++)
+    {
+        if (IsDlgButtonChecked(m_Dlg, i))
+        {
+            m_opts.grayscaleType = i;
             break;
         }
     }

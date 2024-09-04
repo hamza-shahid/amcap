@@ -256,10 +256,26 @@ namespace ImageUtils
 
     void ImageAnalysisRGB::Blackout(BYTE* pImage)
     {
-        int iNumPixels = m_iImageWidth * m_iImageHeight;
+        if (m_opts.blackoutType == IDC_BLACK_WHOLE)
+        {
+            int iNumPixels = m_iImageWidth * m_iImageHeight;
 
-        for (int i = 0; i < iNumPixels; i++)
-            ((RGBTRIPLE*)pImage)[i] = RGB_BLACK;
+            for (int i = 0; i < iNumPixels; i++)
+                ((RGBTRIPLE*)pImage)[i] = RGB_BLACK;
+        }
+        else if (m_opts.blackoutType == IDC_BLACK_AOI)
+        {
+            int iAoiMinY = (m_iImageHeight - m_opts.aoiHeight) / 2;
+            int iAoiMaxY = iAoiMinY + m_opts.aoiHeight;
+
+            for (int y = iAoiMinY; y < iAoiMaxY; y++)
+            {
+                RGBTRIPLE* pRGB = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, y);
+
+                for (int x = 0; x < m_iImageWidth; x++)
+                    pRGB[x] = RGB_BLACK;
+            }
+        }
     }
     
     void ImageAnalysisRGB::DrawAOI(BYTE* pImage)
@@ -269,14 +285,14 @@ namespace ImageUtils
         RGBTRIPLE* pRgb;
         RGBTRIPLE aoiColor;
 
-        if (m_opts.blackout)
+        if (m_opts.blackoutType == IDC_BLACK_NONE)
         {
-            Blackout(pImage);
-            aoiColor = RGB_WHITE;
+            aoiColor = RGB_BLACK;
         }
         else
         {
-            aoiColor = RGB_BLACK;
+            Blackout(pImage);
+            aoiColor = RGB_WHITE;
         }
 
         // Draw the bottom line of our area of interest

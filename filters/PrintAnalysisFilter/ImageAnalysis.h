@@ -15,8 +15,9 @@ namespace ImageUtils
 		CRefTime    effectStartTime;      // When the effect will begin
 		CRefTime    effectTime;
 		BOOL		connectValues;
-		BOOL		blackout;
 		GUID		imageType;
+		int			blackoutType;
+		int			grayscaleType;
 	} AnalysisOpts;
 
 	class ImageAnalysis

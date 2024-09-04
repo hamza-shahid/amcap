@@ -1,4 +1,5 @@
 #include "ImageAnalysisYUY2.h"
+#include "resource.h"
 
 
 namespace ImageUtils
@@ -25,7 +26,9 @@ namespace ImageUtils
     void ImageAnalysisYUY2::NormalizeYUY2(INTYUY2PIXEL& iValue, int iOrigRange, int iMinOrig, int& iNewRange, int& iMinNew)
     {
         iValue.luma = (int)NormalizeValue(iValue.luma, iOrigRange, iMinOrig, iNewRange, iMinNew);
-        iValue.chroma = (int)NormalizeValue(iValue.chroma, iOrigRange, iMinOrig, iNewRange, iMinNew);
+        
+        if (m_opts.grayscaleType == IDC_GRAY_NONE)
+            iValue.chroma = (int)NormalizeValue(iValue.chroma, iOrigRange, iMinOrig, iNewRange, iMinNew);
     }
 
     ImageAnalysisYUY2::ImageAnalysisYUY2(int iImageWidth, int iImageHeight, AnalysisOpts opts)
@@ -41,6 +44,24 @@ namespace ImageUtils
     {
         if (m_piHistogram)
             delete[] m_piHistogram;
+
+        if (m_ppResults)
+        {
+            for (int i = 0; i < m_iPrevPartitions; i++)
+                delete[] m_ppResults[i];
+
+            delete[] m_ppResults;
+            delete[] m_piNumResults;
+        }
+
+        if (m_ppHistogram)
+        {
+            for (int i = 0; i < m_iPrevHistPartitions; i++)
+                delete[] m_ppHistogram[i];
+
+            delete[] m_ppHistogram;
+            delete[] m_piNumHistogramResults;
+        }
     }
 
     void ImageAnalysisYUY2::CheckAllocatedMemory()
@@ -149,6 +170,7 @@ namespace ImageUtils
 
         ComputeIntensity(pImage, iAoiMinY, iAoiMaxY);
 
+        GrayScale(pImage);
         DrawAOI(pImage);
         Normalize(0, (UCHAR_MAX - 1) * m_opts.aoiHeight, iAoiMinY, iAoiMaxY);
         PlotValues(pImage);
@@ -184,6 +206,7 @@ namespace ImageUtils
 
         ComputeAverage(pImage, iAoiMinY, iAoiMaxY);
 
+        GrayScale(pImage);
         DrawAOI(pImage);
         Normalize(0, UCHAR_MAX - 1, iAoiMinY, iAoiMaxY);
         PlotValues(pImage);
@@ -242,6 +265,7 @@ namespace ImageUtils
             ScaleGraph(m_piHistogram, UCHAR_MAX, m_ppHistogram[i], m_piNumHistogramResults[i]);
         }
 
+        GrayScale(pImage);
         DrawAOI(pImage);
         PlotValuesYUV(pImage);
 
@@ -290,10 +314,50 @@ namespace ImageUtils
 
     void ImageAnalysisYUY2::Blackout(BYTE* pImage)
     {
-        int iNumPixels = m_iImageWidth * m_iImageHeight;
+        if (m_opts.blackoutType == IDC_BLACK_WHOLE)
+        {
+            int iNumPixels = m_iImageWidth * m_iImageHeight;
 
-        for (int i = 0; i < iNumPixels; i++)
-            ((YUY2PIXEL*)pImage)[i] = YUY2_BLACK;
+            for (int i = 0; i < iNumPixels; i++)
+                ((YUY2PIXEL*)pImage)[i] = YUY2_BLACK;
+        }
+        else if (m_opts.blackoutType == IDC_BLACK_AOI)
+        {
+            int iAoiMinY = (m_iImageHeight - m_opts.aoiHeight) / 2;
+            int iAoiMaxY = iAoiMinY + m_opts.aoiHeight;
+
+            for (int y = iAoiMinY; y < iAoiMaxY; y++)
+            {
+                YUY2PIXEL* pYUV = (YUY2PIXEL*)ROW(pImage, m_iImageWidth, y);
+
+                for (int x = 0; x < m_iImageWidth; x++)
+                    pYUV[x] = YUY2_BLACK;
+            }
+        }
+    }
+
+    void ImageAnalysisYUY2::GrayScale(BYTE* pImage)
+    {
+        if (m_opts.grayscaleType == IDC_GRAY_WHOLE)
+        {
+            int iNumPixels = m_iImageWidth * m_iImageHeight;
+
+            for (int i = 0; i < iNumPixels; i++)
+                ((YUY2PIXEL*)pImage)[i].chroma = 128;
+        }
+        else if (m_opts.grayscaleType == IDC_GRAY_AOI)
+        {
+            int iAoiMinY = (m_iImageHeight - m_opts.aoiHeight) / 2;
+            int iAoiMaxY = iAoiMinY + m_opts.aoiHeight;
+
+            for (int y = iAoiMinY; y < iAoiMaxY; y++)
+            {
+                YUY2PIXEL* pYUV = (YUY2PIXEL*)ROW(pImage, m_iImageWidth, y);
+
+                for (int x = 0; x < m_iImageWidth; x++)
+                    pYUV[x].chroma = 128;
+            }
+        }
     }
 
     void ImageAnalysisYUY2::DrawAOI(BYTE* pImage)
@@ -303,14 +367,14 @@ namespace ImageUtils
         YUY2PIXEL* pYuv;
         YUY2PIXEL aoiColor;
 
-        if (m_opts.blackout)
+        if (m_opts.blackoutType == IDC_BLACK_NONE)
         {
-            Blackout(pImage);
-            aoiColor = YUY2_WHITE;
+            aoiColor = YUY2_BLACK;
         }
         else
         {
-            aoiColor = YUY2_BLACK;
+            Blackout(pImage);
+            aoiColor = YUY2_WHITE;
         }
 
         // Draw the bottom line of our area of interest
@@ -379,14 +443,16 @@ namespace ImageUtils
             for (int j = 0; j < m_piNumResults[i]; j++)
             {
                 ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].luma))[j + xStart] = YUY2_WHITE;
-                ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].chroma))[j + xStart] = YUY2_RED_BLUE;
+
+                if (m_opts.grayscaleType == IDC_GRAY_NONE)
+                    ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].chroma))[j + xStart] = YUY2_RED_BLUE;
 
                 if (m_opts.connectValues)
                 {
                     if (j > 0)
                         DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppResults[i][j - 1].luma, j, m_ppResults[i][j].luma, YUY2_WHITE);
                     
-                    if (j > 1)
+                    if (j > 1 && m_opts.grayscaleType == IDC_GRAY_NONE)
                         DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 2, m_ppResults[i][j - 2].chroma, j, m_ppResults[i][j].chroma, YUY2_RED_BLUE);
                 }
             }
@@ -403,14 +469,22 @@ namespace ImageUtils
             for (int j = 0; j < m_piNumHistogramResults[i]; j++)
             {
                 ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppHistogram[i][j].luma))[j + xStart] = YUY2_WHITE;
-                ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppHistogram[i][j].Cr))[j + xStart] = YUY2_RED_BLUE;
-                ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppHistogram[i][j].Cb))[j + xStart] = YUY2_RED_BLUE;
+
+                if (m_opts.grayscaleType == IDC_GRAY_NONE)
+                {
+                    ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppHistogram[i][j].Cr))[j + xStart] = YUY2_RED_BLUE;
+                    ((YUY2PIXEL*)ROW((pImage), m_iImageWidth, m_ppHistogram[i][j].Cb))[j + xStart] = YUY2_RED_BLUE;
+                }
                 
                 if (m_opts.connectValues && j > 0)
                 {
                     DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppHistogram[i][j - 1].luma, j, m_ppHistogram[i][j].luma, YUY2_WHITE);
-                    DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppHistogram[i][j - 1].Cr, j, m_ppHistogram[i][j].Cr, YUY2_RED_BLUE);
-                    DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppHistogram[i][j - 1].Cb, j, m_ppHistogram[i][j].Cb, YUY2_RED_BLUE);
+
+                    if (m_opts.grayscaleType == IDC_GRAY_NONE)
+                    {
+                        DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppHistogram[i][j - 1].Cr, j, m_ppHistogram[i][j].Cr, YUY2_RED_BLUE);
+                        DrawLine(pImage + xStart * sizeof(YUY2PIXEL), j - 1, m_ppHistogram[i][j - 1].Cb, j, m_ppHistogram[i][j].Cb, YUY2_RED_BLUE);
+                    }
                 }
             }
         }

@@ -36,6 +36,7 @@ namespace ImageUtils
 
 		void DrawAOI(BYTE* pImage);
 		void Blackout(BYTE* pImage);
+		void GrayScale(BYTE* pImage);
 		void DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, YUY2PIXEL color);
 		void PlotValues(BYTE* pImage);
 		void PlotValuesYUV(BYTE* pImage);

@@ -2141,6 +2141,7 @@ BOOL BuildPreviewGraph()
         rc.bottom -= cy;
 
         gcap.pVW->SetWindowPosition(0, 0, rc.right, rc.bottom); // be this big
+        gcap.pVW->put_MessageDrain((OAHWND)ghwndApp);
         gcap.pVW->put_Visible(OATRUE);
     }
 
@@ -5138,9 +5139,3 @@ void OnClose()
     hr = StringCchPrintf(szBuf, 512, TEXT("%d"), gcap.dwTimeLimit);
     WriteProfileString(TEXT("annie"), TEXT("TimeLimit"), szBuf);
 }
-
-
-
-
-
-

@@ -44,8 +44,6 @@ private:
     CPrintAnalysisFilter(TCHAR* tszName, LPUNKNOWN punk, HRESULT* phr);
     virtual ~CPrintAnalysisFilter();
 
-    HRESULT TransformRGB(IMediaSample* pSample);
-
     CCritSec    m_filterLock;           // Private play critical section
     CMediaType  m_mediaType;            // Media type of the connected input pin
     
