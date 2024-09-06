@@ -28,7 +28,7 @@ namespace ImageUtils
 		void DrawAOI(BYTE* pImage);
 		void Blackout(BYTE* pImage);
 		void PlotValues(BYTE* pImage);
-		void DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, RGBTRIPLE color);
+		void DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, RGBQUAD color);
 		void ScaleGraph(const INTRGBTRIPLE* input, int inSize, INTRGBTRIPLE* output, int outSize);
 		
 		void Normalize(int iOrigMin, int iOrigMax, int iRangeMin, int iRangeMax);

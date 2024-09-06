@@ -131,18 +131,18 @@ HRESULT CPrintAnalysisFilter::CheckInputType(const CMediaType* mtIn)
     CheckPointer(mtIn, E_POINTER);
 
     // check this is a VIDEOINFOHEADER type
-    /*if (*mtIn->FormatType() != FORMAT_VideoInfo) {
+    if (*mtIn->FormatType() != FORMAT_VideoInfo) {
         return E_INVALIDARG;
     }
 
     // Can we transform this type
     if (IsEqualGUID(*mtIn->Type(), MEDIATYPE_Video))
     {
-        if (IsEqualGUID(*mtIn->Subtype(), MEDIASUBTYPE_RGB24))
+        if (IsEqualGUID(*mtIn->Subtype(), MEDIASUBTYPE_RGB32))
         {
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)mtIn->Format();
 
-            if (pvi->bmiHeader.biBitCount == 24)
+            if (pvi->bmiHeader.biBitCount == 32)
                 return NOERROR;
         }
         else if (IsEqualGUID(*mtIn->Subtype(), MEDIASUBTYPE_YUY2))
@@ -150,9 +150,9 @@ HRESULT CPrintAnalysisFilter::CheckInputType(const CMediaType* mtIn)
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)mtIn->Format();
             return NOERROR;
         }
-    }*/
+    }
 
-    return NOERROR;
+    return E_FAIL;
 } // CheckInputType
 
 //
@@ -174,11 +174,11 @@ HRESULT CPrintAnalysisFilter::SetMediaType(PIN_DIRECTION direction, const CMedia
             m_opts.aoiHeight = min(HEADER(pmt->pbFormat)->biHeight, m_opts.aoiHeight);
         }
 
-        if (IsEqualGUID(*m_mediaType.Subtype(), MEDIASUBTYPE_RGB24))
+        if (IsEqualGUID(*m_mediaType.Subtype(), MEDIASUBTYPE_RGB32))
         {
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)m_mediaType.Format();
 
-            if (pvi->bmiHeader.biBitCount == 24)
+            if (pvi->bmiHeader.biBitCount == 32)
             {
                 if (m_pAnalysis)
                     delete m_pAnalysis;

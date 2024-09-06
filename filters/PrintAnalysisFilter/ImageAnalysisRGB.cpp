@@ -4,14 +4,14 @@
 
 namespace ImageUtils
 {
-#define ROW(pImage, width, y) &pImage[width * sizeof(RGBTRIPLE) * y]
-#define ROWCOL(pImage, width, x, y) &pImage[(width * sizeof(RGBTRIPLE) * y) + (x*sizeof(RGBTRIPLE))]
+#define ROW(pImage, width, y) &pImage[width * sizeof(RGBQUAD) * y]
+#define ROWCOL(pImage, width, x, y) &pImage[(width * sizeof(RGBQUAD) * y) + (x*sizeof(RGBQUAD))]
 
-#define RGB_BLACK {0, 0, 0}
-#define RGB_WHITE {255, 255, 255}
-#define RGB_RED {0, 0, 255}
-#define RGB_GREEN {0, 255, 0}
-#define RGB_BLUE {255, 0, 0}
+#define RGB_BLACK {0, 0, 0, 0}
+#define RGB_WHITE {255, 255, 255, 0}
+#define RGB_RED {0, 0, 255, 0}
+#define RGB_GREEN {0, 255, 0, 0}
+#define RGB_BLUE {255, 0, 0, 0}
 
     
     static inline void AdjustMinMax(INTRGBTRIPLE& newMin, INTRGBTRIPLE& newMax, INTRGBTRIPLE& min, INTRGBTRIPLE& max)
@@ -90,11 +90,11 @@ namespace ImageUtils
 
     HRESULT ImageAnalysisRGB::ComputeIntensity(BYTE* pImage, int iAoiMinY, int iAoiMaxY)
     {
-        RGBTRIPLE* pRGB = NULL;
+        RGBQUAD* pRGB = NULL;
 
         for (int y = iAoiMinY; y < iAoiMaxY; y++)
         {
-            pRGB = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, y);
+            pRGB = (RGBQUAD*)ROW(pImage, m_iImageWidth, y);
 
             for (int i = 0; i < m_opts.aoiPartitions; i++)
             {
@@ -102,9 +102,9 @@ namespace ImageUtils
 
                 for (int j = 0; j < m_piNumResults[i]; j++)
                 {
-                    m_ppResults[i][j].red += pRGB[j + xStart].rgbtRed;
-                    m_ppResults[i][j].green += pRGB[j + xStart].rgbtGreen;
-                    m_ppResults[i][j].blue += pRGB[j + xStart].rgbtBlue;
+                    m_ppResults[i][j].red += pRGB[j + xStart].rgbRed;
+                    m_ppResults[i][j].green += pRGB[j + xStart].rgbGreen;
+                    m_ppResults[i][j].blue += pRGB[j + xStart].rgbBlue;
                 }
             }
         }
@@ -167,7 +167,7 @@ namespace ImageUtils
 
     HRESULT ImageAnalysisRGB::ComputeHistogramLocal(BYTE* pImage)
     {
-        RGBTRIPLE* pRGB = NULL;
+        RGBQUAD* pRGB = NULL;
         int iAoiMinY = (m_iImageHeight - m_opts.aoiHeight) / 2;
         int iAoiMaxY = iAoiMinY + m_opts.aoiHeight;
 
@@ -183,13 +183,13 @@ namespace ImageUtils
 
             for (int y = iAoiMinY; y < iAoiMaxY; y++)
             {
-                pRGB = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, y);
+                pRGB = (RGBQUAD*)ROW(pImage, m_iImageWidth, y);
 
                 for (int x = xStart; x < xEnd; x++)
                 {
-                    m_piHistogram[pRGB[x].rgbtRed].red += 1;
-                    m_piHistogram[pRGB[x].rgbtGreen].green += 1;
-                    m_piHistogram[pRGB[x].rgbtBlue].blue += 1;
+                    m_piHistogram[pRGB[x].rgbRed].red += 1;
+                    m_piHistogram[pRGB[x].rgbGreen].green += 1;
+                    m_piHistogram[pRGB[x].rgbBlue].blue += 1;
                 }
             }
 
@@ -261,7 +261,7 @@ namespace ImageUtils
             int iNumPixels = m_iImageWidth * m_iImageHeight;
 
             for (int i = 0; i < iNumPixels; i++)
-                ((RGBTRIPLE*)pImage)[i] = RGB_BLACK;
+                ((RGBQUAD*)pImage)[i] = RGB_BLACK;
         }
         else if (m_opts.blackoutType == IDC_BLACK_AOI)
         {
@@ -270,7 +270,7 @@ namespace ImageUtils
 
             for (int y = iAoiMinY; y < iAoiMaxY; y++)
             {
-                RGBTRIPLE* pRGB = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, y);
+                RGBQUAD* pRGB = (RGBQUAD*)ROW(pImage, m_iImageWidth, y);
 
                 for (int x = 0; x < m_iImageWidth; x++)
                     pRGB[x] = RGB_BLACK;
@@ -282,8 +282,8 @@ namespace ImageUtils
     {
         int iAoiMinY = (m_iImageHeight - m_opts.aoiHeight) / 2;
         int iAoiMaxY = iAoiMinY + m_opts.aoiHeight;
-        RGBTRIPLE* pRgb;
-        RGBTRIPLE aoiColor;
+        RGBQUAD* pRgb;
+        RGBQUAD aoiColor;
 
         if (m_opts.blackoutType == IDC_BLACK_NONE)
         {
@@ -296,13 +296,13 @@ namespace ImageUtils
         }
 
         // Draw the bottom line of our area of interest
-        pRgb = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, iAoiMinY);
+        pRgb = (RGBQUAD*)ROW(pImage, m_iImageWidth, iAoiMinY);
 
         for (int x = 0; x < m_iImageWidth; x++)
             pRgb[x] = aoiColor;
 
         // Draw the top line of our area of interest
-        pRgb = (RGBTRIPLE*)ROW(pImage, m_iImageWidth, iAoiMaxY);
+        pRgb = (RGBQUAD*)ROW(pImage, m_iImageWidth, iAoiMaxY);
 
         for (int x = 0; x < m_iImageWidth; x++)
             pRgb[x] = aoiColor;
@@ -313,11 +313,11 @@ namespace ImageUtils
             int x = (int) ((float)m_iImageWidth / m_opts.aoiPartitions * i);
 
             for (int y = iAoiMinY; y < iAoiMaxY; y++)
-                ((RGBTRIPLE*)ROW(pImage, m_iImageWidth, y))[x] = aoiColor;
+                ((RGBQUAD*)ROW(pImage, m_iImageWidth, y))[x] = aoiColor;
         }
     }
 
-    void ImageAnalysisRGB::DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, RGBTRIPLE color)
+    void ImageAnalysisRGB::DrawLine(BYTE* pImage, int x0, int y0, int x1, int y1, RGBQUAD color)
     {
         int dx = abs(x1 - x0);
         int dy = abs(y1 - y0);
@@ -328,7 +328,7 @@ namespace ImageUtils
         while (true)
         {
             // Set the current pixel to red
-            RGBTRIPLE* pixel = (RGBTRIPLE*)(ROWCOL(pImage, m_iImageWidth, x0, y0));
+            RGBQUAD* pixel = (RGBQUAD*)(ROWCOL(pImage, m_iImageWidth, x0, y0));
             *pixel = color;
 
             // Check if we've reached the end point
@@ -358,15 +358,15 @@ namespace ImageUtils
 
             for (int j = 0; j < m_piNumResults[i]; j++)
             {
-                ((RGBTRIPLE*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].red))[j + xStart] = RGB_RED;
-                ((RGBTRIPLE*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].green))[j + xStart] = RGB_GREEN;
-                ((RGBTRIPLE*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].blue))[j + xStart] = RGB_BLUE;
+                ((RGBQUAD*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].red))[j + xStart] = RGB_RED;
+                ((RGBQUAD*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].green))[j + xStart] = RGB_GREEN;
+                ((RGBQUAD*)ROW((pImage), m_iImageWidth, m_ppResults[i][j].blue))[j + xStart] = RGB_BLUE;
 
                 if (m_opts.connectValues && j > 0)
                 {
-                    DrawLine(pImage + xStart*3, j - 1, m_ppResults[i][j - 1].red, j, m_ppResults[i][j].red, RGB_RED);
-                    DrawLine(pImage + xStart*3, j - 1, m_ppResults[i][j - 1].green, j, m_ppResults[i][j].green, RGB_GREEN);
-                    DrawLine(pImage + xStart*3, j - 1, m_ppResults[i][j - 1].blue, j, m_ppResults[i][j].blue, RGB_BLUE);
+                    DrawLine(pImage + xStart*sizeof(RGBQUAD), j - 1, m_ppResults[i][j - 1].red, j, m_ppResults[i][j].red, RGB_RED);
+                    DrawLine(pImage + xStart*sizeof(RGBQUAD), j - 1, m_ppResults[i][j - 1].green, j, m_ppResults[i][j].green, RGB_GREEN);
+                    DrawLine(pImage + xStart*sizeof(RGBQUAD), j - 1, m_ppResults[i][j - 1].blue, j, m_ppResults[i][j].blue, RGB_BLUE);
                 }
             }
         }
