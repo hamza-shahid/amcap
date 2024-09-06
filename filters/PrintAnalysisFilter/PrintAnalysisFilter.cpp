@@ -131,7 +131,7 @@ HRESULT CPrintAnalysisFilter::CheckInputType(const CMediaType* mtIn)
     CheckPointer(mtIn, E_POINTER);
 
     // check this is a VIDEOINFOHEADER type
-    if (*mtIn->FormatType() != FORMAT_VideoInfo) {
+    /*if (*mtIn->FormatType() != FORMAT_VideoInfo) {
         return E_INVALIDARG;
     }
 
@@ -141,7 +141,7 @@ HRESULT CPrintAnalysisFilter::CheckInputType(const CMediaType* mtIn)
         if (IsEqualGUID(*mtIn->Subtype(), MEDIASUBTYPE_RGB24))
         {
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)mtIn->Format();
-            
+
             if (pvi->bmiHeader.biBitCount == 24)
                 return NOERROR;
         }
@@ -150,9 +150,9 @@ HRESULT CPrintAnalysisFilter::CheckInputType(const CMediaType* mtIn)
             VIDEOINFOHEADER* pvi = (VIDEOINFOHEADER*)mtIn->Format();
             return NOERROR;
         }
+    }*/
 
-    }
-    return E_FAIL;
+    return NOERROR;
 } // CheckInputType
 
 //
